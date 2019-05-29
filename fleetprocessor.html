@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<HTML LANG="en">
+ <HEAD>
+  <META CHARSET="utf-8">
+  <TITLE>Fleet Processor</TITLE>
+ </HEAD>
+ <BODY>
+  <DIV ID="page">
+   Copy the contents of the following textbox and save as your new pilot file.  Javascript does not allow direct writing of arbitrary files to local storage.
+  </DIV>
+  <SCRIPT ID="processor">
+   document.main = function (step)
+   {var reader = new XMLHttpRequest() || new ActiveXObject("MSXML2.XMLHTTP");
+    step = step || 1;
+    switch (step)
+    {case 1: /* Get the filename */
+      reader.onloadend = function (e)
+      {document.filename = reader.responseText.split("/");
+       document.filename = document.filename[document.filename.length - 1];
+       document.filename = document.filename.split(".");
+       document.filename = "saves/" + document.filename[0] + ".txt";
+
+       console.log("Sanity Check 1: " + (document.filename !== "saves/undefined.txt"));
+       document.main(step + 1);
+      };
+      reader.open("GET", "recent.txt");
+      reader.responseType = "text";
+      reader.send();
+      break;
+
+     case 2: /* Get the pilot file and parse out the header, ships, and footer data */
+      reader.onloadend = function (e)
+      {document.rawdata = reader.responseText;
+       document.data = document.rawdata.split("\n");
+
+       document.header = [];
+       var line = 0, processingSection;
+       for (processingSection = true; processingSection; line++)
+       {document.header.push(document.data[line]);
+        processingSection = !(document.data[line] === "# What you own:");
+       }
+       document.header = document.header.join("\n");
+
+       document.ships = [];
+       for (processingSection = true; processingSection; line++)
+       {document.ships.push(document.data[line]);
+        processingSection = !(document.data[line + 1] === "account");
+       }
+       document.ships = document.ships.join("\n");
+
+       document.footer = [];
+       for (line = line; line < document.data.length; line++)
+       {document.footer.push(document.data[line]);
+       }
+       document.footer = document.footer.join("\n");
+
+       console.log("Sanity Check 2: " + (document.header + "\n" + document.ships + "\n" + document.footer === document.rawdata));
+       document.main(step + 1);
+      };
+      reader.open("GET", document.filename);
+      reader.responseType = "text";
+      reader.send();
+      break;
+
+     case 3: /* segment out the individual ships for sorting */
+      document.ships = document.ships.split("\n");
+      document.shipCollection = [];
+      for (var line = 0; line < document.ships.length; line++)
+      {var data = "", shields = null, processingSection = true;
+       for (; line < document.ships.length && processingSection; line++)
+       {if (document.ships[line].slice(0,9) === "		shields") {shields = parseInt(document.ships[line].slice(10), 10);}
+        data += document.ships[line] + "\n";
+        if (line !== document.ships.length - 1) {processingSection = !(document.ships[line + 1].slice(0,5) === "ship ");}
+       }
+       document.shipCollection.push(function () {});
+       document.shipCollection[document.shipCollection.length - 1].data = data.slice(0,-1);
+       document.shipCollection[document.shipCollection.length - 1].shields = shields;
+       line = line - 1;
+      }
+
+      console.log("Sanity Check 3: " + (document.shipCollection.length === 8));
+      document.main(step + 1);
+      break;
+
+     case 4: /* sort the ships by shielding and remake the ships section */
+      document.flagship = document.shipCollection.shift();
+      document.shipCollection.sort(function (a, b) {return b.shields - a.shields});
+      document.ships = document.flagship.data + "\n";
+      for (var ship = 0; ship < document.shipCollection.length; ship++)
+      {document.ships += document.shipCollection[ship].data + "\n";
+      }
+      document.ships = document.ships.slice(0,-1);
+      document.sorteddata = (document.header + "\n" + document.ships + "\n" + document.footer);
+      
+      console.log("Sanity Check 4: " + (document.sorteddata.length === document.rawdata.length));
+      document.main(step + 1);
+      break;
+
+     default: /* Display the new pilot file for the enduser to copy and paste over the existing one */
+      var pilotfile = document.createElement("TEXTAREA");
+      pilotfile.id = "pilotfile";
+      pilotfile.readonly = "readonly";
+      pilotfile.style.width = "95%";
+      pilotfile.style.margin = "2.5% auto";
+      pilotfile.value = document.sorteddata.slice(0, -1);
+      document.getElementById("page").appendChild(pilotfile);
+      document.getElementById("pilotfile").onclick = function ()
+      {this.focus();
+       this.select();
+      };
+      return true;
+    }
+   };
+
+   document.main()
+  </SCRIPT>
+ </BODY>
+</HTML>
