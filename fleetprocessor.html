@@ -78,7 +78,6 @@
        line = line - 1;
       }
 
-      console.log("Sanity Check 3: " + (document.shipCollection.length === 8));
       document.main(step + 1);
       break;
 
@@ -96,6 +95,16 @@
       document.main(step + 1);
       break;
 
+     case 5: /* Generate the fleet summary data */
+      document.shipClasses = [document.flagship.data.split("\n")[0].slice(5)];
+      for (var ship = 0; ship < document.shipCollection.length; ship++)
+      {document.shipClasses.push(document.shipCollection[ship].data.split("\n")[0].slice(5));
+      }
+      
+      console.log("Sanity Check 5: " + (document.shipClasses.length === document.shipCollection.length));
+      document.main(step + 1);
+      break;
+
      default: /* Display the new pilot file for the enduser to copy and paste over the existing one */
       var pilotfile = document.createElement("TEXTAREA");
       pilotfile.id = "pilotfile";
@@ -108,6 +117,22 @@
       {this.focus();
        this.select();
       };
+
+      /* Addon 1: Ship Summary Data */
+      var summary = document.createElement("P");
+      summary.innerHTML = "<BR><BR>Summary of ships in your fleet:<HR>";
+      document.getElementById("page").appendChild(summary);
+      var shipsummary = document.createElement("P");
+      shipsummary.innerHTML = "";
+      for (var shipclass = 0; shipclass < document.shipClasses.length; shipclass++)
+      {var classname = document.shipClasses[shipclass], count = 1;
+       for (shipclass; document.shipClasses[shipclass] === document.shipClasses[shipclass + 1] && shipclass < document.shipClasses.length; shipclass++)
+       {count++;}
+       shipsummary.innerHTML += count + " " + classname + " class vessel";
+       if (count !== 1) {shipsummary.innerHTML += "s";}
+       shipsummary.innerHTML += "<BR>";
+      }
+      document.getElementById("page").appendChild(shipsummary);
       return true;
     }
    };
