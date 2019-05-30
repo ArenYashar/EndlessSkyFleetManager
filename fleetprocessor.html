@@ -6,7 +6,6 @@
  </HEAD>
  <BODY>
   <DIV ID="page">
-   Copy the contents of the following textbox and save as your new pilot file.  Javascript does not allow direct writing of arbitrary files to local storage.
   </DIV>
   <SCRIPT ID="processor">
    document.main = function (step)
@@ -89,7 +88,7 @@
       {document.ships += document.shipCollection[ship].data + "\n";
       }
       document.ships = document.ships.slice(0,-1);
-      document.sorteddata = (document.header + "\n" + document.ships + "\n" + document.footer);
+      document.sorteddata = (document.header + "\n" + document.ships + "\n" + document.footer).slice(0, -1);
       
       console.log("Sanity Check 4: " + (document.sorteddata.length === document.rawdata.length));
       document.main(step + 1);
@@ -105,22 +104,18 @@
       document.main(step + 1);
       break;
 
-     default: /* Display the new pilot file for the enduser to copy and paste over the existing one */
-      var pilotfile = document.createElement("TEXTAREA");
-      pilotfile.id = "pilotfile";
-      pilotfile.readonly = "readonly";
-      pilotfile.style.width = "95%";
-      pilotfile.style.margin = "2.5% auto";
-      pilotfile.value = document.sorteddata.slice(0, -1);
+     default: /* Start the pilot file download process */
+      var pilotfile = document.createElement("A");
+      pilotfile.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(document.sorteddata));
+      pilotfile.setAttribute("download", document.filename.split("/")[1]);
+      pilotfile.style.display = "none";
       document.getElementById("page").appendChild(pilotfile);
-      document.getElementById("pilotfile").onclick = function ()
-      {this.focus();
-       this.select();
-      };
+      pilotfile.click();
+      document.getElementById("page").removeChild(pilotfile);
 
       /* Addon 1: Ship Summary Data */
       var summary = document.createElement("P");
-      summary.innerHTML = "<BR><BR>Summary of ships in your fleet:<HR>";
+      summary.innerHTML = "Summary of ships in your fleet:<HR>";
       document.getElementById("page").appendChild(summary);
       var shipsummary = document.createElement("P");
       shipsummary.innerHTML = "";
