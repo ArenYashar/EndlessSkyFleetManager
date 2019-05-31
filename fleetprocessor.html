@@ -90,7 +90,7 @@
       document.ships = document.ships.slice(0,-1);
       document.sorteddata = (document.header + "\n" + document.ships + "\n" + document.footer).slice(0, -1);
       
-      console.log("Sanity Check 4: " + (document.sorteddata.length === document.rawdata.length));
+      console.log("Sanity Check 4: " + (document.sorteddata.length + 1 === document.rawdata.length));
       document.main(step + 1);
       break;
 
@@ -100,7 +100,7 @@
       {document.shipClasses.push(document.shipCollection[ship].data.split("\n")[0].slice(5));
       }
       
-      console.log("Sanity Check 5: " + (document.shipClasses.length === document.shipCollection.length));
+      console.log("Sanity Check 5: " + (document.shipClasses.length === (document.shipCollection.length + 1)));
       document.main(step + 1);
       break;
 
